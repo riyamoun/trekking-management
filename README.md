@@ -6,25 +6,24 @@ Public marketing site plus role dashboards (admin / staff / trekker), JWT authen
 
 ## Run on your laptop (instructor / viva)
 
-**Full line-by-line guide:** see [`LOCAL-SETUP.md`](./LOCAL-SETUP.md) (install → clone → venv → `.env` → run → browser → accounts).
+**Windows PowerShell (recommended for you):** see [`WINDOWS-SETUP.md`](./WINDOWS-SETUP.md) — short copy-paste steps.
 
-Short path (Ubuntu / WSL) after reading that file:
+**Linux / macOS:** see [`LOCAL-SETUP.md`](./LOCAL-SETUP.md).
 
-```bash
-sudo apt-get update
-sudo apt-get install -y git python3 python3-pip python3.12-venv redis-server
-sudo service redis-server start   # optional for UI-only demo
-cd ~
+### Windows — paste in PowerShell
+
+```powershell
+cd $HOME
 git clone https://github.com/riyamoun/trekking-management.git
 cd trekking-management
 git checkout cursor/trekking-management-github-a742
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# set ADMIN_PASSWORD=TrekLab#Admin9x, DEMO_* passwords, SEED_DEMO_DATA=true
-python run.py
-# open http://127.0.0.1:3847/
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts\write-lab-env.py
+.\.venv\Scripts\python.exe run.py
 ```
+
+Browser: **http://127.0.0.1:3847/**
 
 | Role | Email | Password |
 |------|-------|----------|
