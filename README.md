@@ -2,7 +2,7 @@
 
 IIT Madras BS Degree · App Development II (MAD-2).
 
-Production-minded Flask API + Vue.js (CDN) SPA + Bootstrap UI + SQLite + Redis cache + Celery workers, with JWT RBAC reconciled against the live database on every protected request.
+Public marketing site plus role dashboards (admin / staff / trekker), JWT authentication, trail photography, SVG stickers, atmosphere video, and Chart.js analytics — built on Flask + Vue.js (CDN) + Bootstrap + SQLite + Redis + Celery.
 
 ## Architecture (viva-ready)
 

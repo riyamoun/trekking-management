@@ -11,6 +11,25 @@ from backend.models import Booking, Trek, User
 from backend.security import generate_password, write_bootstrap_admin
 
 
+def _backfill_trek_media() -> None:
+    """Attach local media paths to treks missing image_url."""
+    defaults = {
+        "Triund Sunrise Trek": "/assets/media/trek-triund.jpg",
+        "Kedarkantha Winter Trail": "/assets/media/trek-snow.jpg",
+        "Hampta Pass Crossing": "/assets/media/trek-pass.jpg",
+        "Har Ki Dun Valley": "/assets/media/trek-valley.jpg",
+        "Chopta–Tungnath Ridge": "/assets/media/trek-ridge.jpg",
+        "Valley of Flowers Circuit": "/assets/media/trek-flowers.jpg",
+    }
+    changed = False
+    for trek in Trek.query.all():
+        if not trek.image_url:
+            trek.image_url = defaults.get(trek.name, "/assets/media/trek-pass.jpg")
+            changed = True
+    if changed:
+        db.session.commit()
+
+
 def _resolve_admin_password() -> str:
     configured = (current_app.config.get("ADMIN_PASSWORD") or "").strip()
     if configured:
@@ -47,6 +66,9 @@ def seed_database() -> None:
             admin_email,
             path,
         )
+
+    # Backfill cover images on existing treks (safe, idempotent)
+    _backfill_trek_media()
 
     if not current_app.config.get("SEED_DEMO_DATA"):
         return
@@ -119,6 +141,8 @@ def seed_database() -> None:
             end_date=today + timedelta(days=11),
             price=2499,
             instructions="Carry warm layers, 2L water, and rain jacket. Reporting time 6:00 AM at McLeod Ganj bus stand.",
+            image_url="/assets/media/trek-triund.jpg",
+            gallery_urls="/assets/media/trek-ridge.jpg,/assets/media/hero-himalaya.jpg",
         ),
         Trek(
             name="Kedarkantha Winter Trail",
@@ -133,6 +157,8 @@ def seed_database() -> None:
             end_date=today + timedelta(days=25),
             price=8999,
             instructions="Mandatory fitness check. Pack microspikes if available. No solo side trails.",
+            image_url="/assets/media/trek-snow.jpg",
+            gallery_urls="/assets/media/trek-pass.jpg,/assets/media/trek-ridge.jpg",
         ),
         Trek(
             name="Hampta Pass Crossing",
@@ -147,6 +173,8 @@ def seed_database() -> None:
             end_date=today + timedelta(days=44),
             price=11999,
             instructions="Prior altitude experience preferred. Diamox only under medical advice.",
+            image_url="/assets/media/trek-pass.jpg",
+            gallery_urls="/assets/media/trek-valley.jpg,/assets/media/hero-himalaya.jpg",
         ),
         Trek(
             name="Har Ki Dun Valley",
@@ -161,6 +189,8 @@ def seed_database() -> None:
             end_date=today + timedelta(days=61),
             price=10999,
             instructions="Permits arranged by staff. Respect village customs.",
+            image_url="/assets/media/trek-valley.jpg",
+            gallery_urls="/assets/media/trek-flowers.jpg,/assets/media/trek-ridge.jpg",
         ),
         Trek(
             name="Chopta–Tungnath Ridge",
@@ -175,6 +205,8 @@ def seed_database() -> None:
             end_date=today - timedelta(days=18),
             price=3999,
             instructions="Temple stairs can be icy — use trekking poles.",
+            image_url="/assets/media/trek-ridge.jpg",
+            gallery_urls="/assets/media/trek-triund.jpg",
         ),
         Trek(
             name="Valley of Flowers Circuit",
@@ -189,6 +221,8 @@ def seed_database() -> None:
             end_date=today - timedelta(days=55),
             price=9999,
             instructions="National park entry included. No plastic bottles beyond base.",
+            image_url="/assets/media/trek-flowers.jpg",
+            gallery_urls="/assets/media/trek-valley.jpg,/assets/media/trek-pass.jpg",
         ),
     ]
     db.session.add_all(treks)

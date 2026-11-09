@@ -11,6 +11,7 @@ createApp({
     const route = ref(window.location.hash.slice(1) || "/");
     const loading = ref(false);
     const labHints = ref(false);
+    const featuredTreks = ref([]);
     const toast = reactive({ show: false, message: "", type: "success" });
 
     const authForm = reactive({ name: "", email: "", password: "", phone: "" });
@@ -63,6 +64,7 @@ createApp({
       price: 0,
       description: "",
       instructions: "",
+      image_url: "/assets/media/trek-pass.jpg",
     });
     const assignForm = reactive({ trekId: null, trekName: "", staff_ids: [] });
     const staffForm = reactive({ name: "", email: "", phone: "", password: "" });
@@ -70,6 +72,10 @@ createApp({
     const isAdmin = computed(() => user.value?.role === "admin");
     const isStaff = computed(() => user.value?.role === "staff");
     const isUser = computed(() => user.value?.role === "user");
+    const isMarketing = computed(() => {
+      const r = route.value || "/";
+      return r === "/" || r === "" || r === "/explore" || r.startsWith("/#");
+    });
     const roleLabel = computed(() => {
       const map = { admin: "Admin", staff: "Trek Staff", user: "Trekker" };
       return map[user.value?.role] || "";
@@ -141,6 +147,29 @@ createApp({
       return "/user";
     }
 
+    function trekImage(booking) {
+      return booking?.trek?.image_url || "/assets/media/trek-pass.jpg";
+    }
+
+    async function loadFeaturedTreks() {
+      const params = new URLSearchParams({ view: "public" });
+      if (filter.q) params.set("q", filter.q);
+      if (filter.difficulty) params.set("difficulty", filter.difficulty);
+      if (filter.location) params.set("location", filter.location);
+      if (filter.duration) params.set("duration", filter.duration);
+      const data = await api(`/api/treks?${params.toString()}`);
+      featuredTreks.value = data.treks || [];
+    }
+
+    async function filterPublicTreks() {
+      await loadFeaturedTreks();
+    }
+
+    function resetPublicFilter() {
+      Object.assign(filter, { q: "", difficulty: "", location: "", duration: "" });
+      loadFeaturedTreks();
+    }
+
     function navigate(path) {
       window.location.hash = path;
     }
@@ -157,7 +186,7 @@ createApp({
       user.value = null;
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
-      navigate("/login");
+      navigate("/");
     }
 
     function formatDate(value) {
@@ -324,6 +353,7 @@ createApp({
           price: trek.price,
           description: trek.description || "",
           instructions: trek.instructions || "",
+          image_url: trek.image_url || "/assets/media/trek-pass.jpg",
         });
       } else {
         Object.assign(trekForm, {
@@ -340,6 +370,7 @@ createApp({
           price: 0,
           description: "",
           instructions: "",
+          image_url: "/assets/media/trek-pass.jpg",
         });
       }
       bootstrap.Modal.getOrCreateInstance(document.getElementById("trekModal")).show();
@@ -626,28 +657,40 @@ createApp({
     }
 
     async function loadRouteData() {
+      const r = route.value || "/";
       if (!user.value) {
-        if (route.value !== "/login" && route.value !== "/register") navigate("/login");
+        const publicRoutes = ["/", "", "/login", "/register", "/explore"];
+        if (!publicRoutes.includes(r) && !r.startsWith("/#")) {
+          navigate("/");
+          return;
+        }
+        if (r === "/" || r === "" || r === "/explore") {
+          try {
+            await loadFeaturedTreks();
+          } catch (e) {
+            showToast(e.message, "danger");
+          }
+        }
         return;
       }
-      if (route.value === "/" || route.value === "") {
+      if (r === "/" || r === "" || r === "/login" || r === "/register" || r === "/explore") {
         navigate(homeForRole(user.value.role));
         return;
       }
       try {
-        if (route.value === "/admin") await loadAdminDashboard();
-        else if (route.value === "/admin/treks") await loadAdminTreks();
-        else if (route.value === "/admin/staff") await loadAdminStaff();
-        else if (route.value === "/admin/users") await loadAdminUsers();
-        else if (route.value === "/admin/bookings") await loadAdminBookings();
-        else if (route.value === "/admin/reports") await loadReports();
-        else if (route.value === "/staff") await loadStaffDashboard();
-        else if (route.value.startsWith("/staff/trek/")) {
-          const id = route.value.split("/").pop();
+        if (r === "/admin") await loadAdminDashboard();
+        else if (r === "/admin/treks") await loadAdminTreks();
+        else if (r === "/admin/staff") await loadAdminStaff();
+        else if (r === "/admin/users") await loadAdminUsers();
+        else if (r === "/admin/bookings") await loadAdminBookings();
+        else if (r === "/admin/reports") await loadReports();
+        else if (r === "/staff") await loadStaffDashboard();
+        else if (r.startsWith("/staff/trek/")) {
+          const id = r.split("/").pop();
           participantsView.value = await api(`/api/staff/treks/${id}/participants`);
-        } else if (route.value === "/user" || route.value === "/user/browse") await loadUserDashboard();
-        else if (route.value === "/user/bookings") await loadUserBookings();
-        else if (route.value === "/user/profile") await loadProfile();
+        } else if (r === "/user" || r === "/user/browse") await loadUserDashboard();
+        else if (r === "/user/bookings") await loadUserBookings();
+        else if (r === "/user/profile") await loadProfile();
       } catch (e) {
         if (String(e.message).toLowerCase().includes("token") || String(e.message).includes("401")) {
           logout();
@@ -670,7 +713,7 @@ createApp({
         labHints.value = false;
       }
       if (!window.location.hash) {
-        window.location.hash = user.value ? homeForRole(user.value.role) : "/login";
+        window.location.hash = user.value ? homeForRole(user.value.role) : "/";
       }
       window.addEventListener("hashchange", onHashChange);
       if (token.value) {
@@ -679,8 +722,10 @@ createApp({
           user.value = me.user;
           localStorage.setItem(USER_KEY, JSON.stringify(me.user));
         } catch {
-          logout();
-          return;
+          token.value = "";
+          user.value = null;
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
         }
       }
       onHashChange();
@@ -691,6 +736,8 @@ createApp({
       route,
       loading,
       labHints,
+      featuredTreks,
+      isMarketing,
       toast,
       authForm,
       adminDash,
@@ -722,6 +769,9 @@ createApp({
       navigate,
       logout,
       formatDate,
+      trekImage,
+      filterPublicTreks,
+      resetPublicFilter,
       doLogin,
       doRegister,
       runSearch,

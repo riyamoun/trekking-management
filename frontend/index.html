@@ -4,18 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TrekManage — Trekking Management</title>
+  <meta name="description" content="TrekManage — premium trekking operations for admins, trek staff, and trekkers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <link href="/css/style.css" rel="stylesheet" />
+  <link rel="icon" href="/assets/brand-mark.jpg" />
 </head>
 <body>
   <div id="app">
+    <!-- PUBLIC NAV -->
+    <nav class="navbar navbar-expand-lg nav-public" v-if="!user && isMarketing">
+      <div class="container">
+        <a class="brand-lockup text-white" href="#/">
+          <img src="/assets/brand-mark.jpg" alt="TrekManage mark" />
+          TrekManage
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#pubNav">
+          <span class="navbar-toggler-icon" style="filter: invert(1)"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="pubNav">
+          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+            <li class="nav-item"><a class="nav-link" href="#/explore">Explore treks</a></li>
+            <li class="nav-item"><a class="nav-link" href="#/#how">How it works</a></li>
+            <li class="nav-item"><a class="nav-link" href="#/#roles">Portals</a></li>
+            <li class="nav-item"><a class="nav-link" href="#/login">Sign in</a></li>
+            <li class="nav-item"><a class="btn btn-amber btn-sm ms-lg-2" href="#/register">Join as trekker</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- APP NAV -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-trek sticky-top" v-if="user">
       <div class="container">
-        <a class="navbar-brand" href="#/">⛰ TrekManage</a>
+        <a class="navbar-brand brand-lockup text-white" href="#/">
+          <img src="/assets/brand-mark.jpg" alt="" />
+          TrekManage
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -38,52 +66,265 @@
       <button type="button" class="btn-close float-end" @click="toast.show=false"></button>
     </div>
 
-    <main class="container py-4">
-      <!-- AUTH -->
-      <section v-if="route === '/login' || route === '/register'" class="auth-shell">
-        <div class="auth-card">
-          <div class="text-center mb-3">
-            <div class="brand-font fs-3 text-success">TrekManage</div>
-            <p class="text-muted mb-0">{{ route === '/login' ? 'Sign in to continue' : 'Create your trekker account' }}</p>
+    <!-- ===================== PUBLIC LANDING ===================== -->
+    <div v-if="!user && (route === '/' || route === '')">
+      <header class="hero-bleed">
+        <div class="hero-bleed__media">
+          <img src="/assets/media/hero-himalaya.jpg" alt="Himalayan ridge at golden hour" />
+        </div>
+        <div class="hero-bleed__shade"></div>
+        <div class="container hero-bleed__copy">
+          <div class="brand-hero brand-font">TrekManage</div>
+          <p class="lede">Operations-grade trekking for organizers, trail staff, and trekkers — slots, staff assignments, bookings, and batch jobs in one calm command surface.</p>
+          <div class="cta-row">
+            <a class="btn btn-amber btn-lg" href="#/register">Start as trekker</a>
+            <a class="btn btn-ghost-light btn-lg" href="#/explore">Browse open treks</a>
+            <a class="btn btn-ghost-light btn-lg" href="#/login">Staff / Admin sign in</a>
           </div>
-          <form @submit.prevent="route === '/login' ? doLogin() : doRegister()" novalidate>
-            <div class="mb-3" v-if="route === '/register'">
-              <label class="form-label">Full name</label>
-              <input class="form-control" v-model="authForm.name" required minlength="2" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-control" v-model="authForm.email" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Password</label>
-              <input type="password" class="form-control" v-model="authForm.password" required minlength="10" autocomplete="current-password" />
-            </div>
-            <div class="mb-3" v-if="route === '/register'">
-              <label class="form-label">Phone</label>
-              <input class="form-control" v-model="authForm.phone" pattern="[0-9+\\-\\s]{7,20}" />
-            </div>
-            <button class="btn btn-forest w-100" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              {{ route === '/login' ? 'Login' : 'Register' }}
-            </button>
-          </form>
-          <div class="text-center mt-3 small">
-            <a v-if="route === '/login'" href="#/register">New trekker? Register</a>
-            <a v-else href="#/login">Already have an account? Login</a>
+        </div>
+      </header>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <div class="eyebrow">Trail identity</div>
+            <h2 class="brand-font h1 mb-2">Built to feel like the mountains</h2>
+            <p class="text-muted mb-0">Visual language, stickers, and field photography — not a grey admin spreadsheet.</p>
           </div>
-          <div v-if="labHints" class="small text-muted mt-3 border-top pt-3">
-            <strong>Local lab mode</strong> — use credentials from your
-            <code>instance/</code> bootstrap files or local <code>.env</code>. Never commit them.
+          <div class="sticker-rail mb-4">
+            <img class="sticker-chip" src="/assets/svg/sticker-boots.svg" alt="Trail boots" title="Boots" />
+            <img class="sticker-chip" src="/assets/svg/sticker-pack.svg" alt="Backpack" title="Pack" />
+            <img class="sticker-chip" src="/assets/svg/sticker-peak.svg" alt="Mountain peak" title="Peak" />
+            <img class="sticker-chip" src="/assets/svg/sticker-compass.svg" alt="Compass" title="Compass" />
+            <img class="sticker-chip" src="/assets/svg/sticker-camp.svg" alt="Camp tent" title="Camp" />
+            <img class="sticker-chip" src="/assets/svg/sticker-pin.svg" alt="Trail pin" title="Pin" />
+            <img class="sticker-sheet" src="/assets/trek-stickers.jpg" alt="TrekManage sticker sheet" />
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4" v-for="t in featuredTreks.slice(0,3)" :key="'f'+t.id">
+              <article class="feature-tile">
+                <img :src="t.image_url || '/assets/media/trek-pass.jpg'" :alt="t.name" />
+                <div class="body">
+                  <div class="small text-uppercase opacity-75">{{ t.difficulty }} · {{ t.duration_days }}d</div>
+                  <h3 class="h4 brand-font mb-1">{{ t.name }}</h3>
+                  <div class="small">{{ t.location }}</div>
+                </div>
+              </article>
+            </div>
           </div>
         </div>
       </section>
 
+      <section class="section pt-0" id="how">
+        <div class="container">
+          <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+              <div class="section-head mb-3">
+                <div class="eyebrow">Field reel</div>
+                <h2 class="brand-font h1">Motion from the trail</h2>
+                <p class="text-muted">Atmospheric cut for the public site — paired with live Open trek inventory from the API.</p>
+              </div>
+              <div class="reel mb-3">
+                <video autoplay muted loop playsinline poster="/assets/media/hero-himalaya.jpg">
+                  <source src="/assets/media/atmosphere.mp4" type="video/mp4" />
+                </video>
+                <div class="reel-caption"><i class="bi bi-camera-reels me-1"></i> Atmosphere reel</div>
+              </div>
+              <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow">
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/s6zR2T9vn2c?rel=0"
+                  title="Himalayan trekking atmosphere"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  loading="lazy"
+                ></iframe>
+              </div>
+              <p class="small text-muted mt-2 mb-0">YouTube field footage embed for viva demos (nocookie). Local poster + motion bed stay offline-friendly.</p>
+            </div>
+            <div class="col-lg-6">
+              <div class="section-head">
+                <div class="eyebrow">How it works</div>
+                <h2 class="brand-font h1">Three portals. One system.</h2>
+              </div>
+              <ol class="list-group list-group-numbered list-group-flush panel">
+                <li class="list-group-item px-0">Admin seeds routes, staff, and approvals — no public admin signup.</li>
+                <li class="list-group-item px-0">Assigned staff open slots, close registrations, and mark completion.</li>
+                <li class="list-group-item px-0">Trekkers register, filter Open treks, book once, export history via Celery.</li>
+                <li class="list-group-item px-0">Redis caches hot trek lists; Celery sends reminders and monthly reports.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="roles">
+        <div class="container">
+          <div class="section-head">
+            <div class="eyebrow">Portals</div>
+            <h2 class="brand-font h1">Sign in to your desk</h2>
+            <p class="text-muted mb-0">Proper authentication with JWT sessions and live role checks against the database.</p>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="role-panel">
+                <div class="icon-orb"><i class="bi bi-shield-lock"></i></div>
+                <h3 class="h5 brand-font">Admin</h3>
+                <p class="text-muted small">Treks, staff, blacklist, analytics, monthly HTML/PDF reports.</p>
+                <a href="#/login" class="btn btn-forest btn-sm">Admin sign in</a>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="role-panel">
+                <div class="icon-orb"><i class="bi bi-person-badge"></i></div>
+                <h3 class="h5 brand-font">Trek Staff</h3>
+                <p class="text-muted small">Only assigned treks — slots, status, participants, completion.</p>
+                <a href="#/login" class="btn btn-forest btn-sm">Staff sign in</a>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="role-panel">
+                <div class="icon-orb"><i class="bi bi-compass"></i></div>
+                <h3 class="h5 brand-font">Trekker</h3>
+                <p class="text-muted small">Self-register, browse, book Open treks, history + CSV export.</p>
+                <a href="#/register" class="btn btn-amber btn-sm">Create account</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-3">
+          <div>
+            <div class="brand-lockup text-white mb-2">
+              <img src="/assets/brand-mark.jpg" alt="" /> TrekManage
+            </div>
+            <div class="small opacity-75">MAD-2 Trekking Management Application V2</div>
+          </div>
+          <div class="d-flex gap-3 small">
+            <a href="#/explore">Explore</a>
+            <a href="#/login">Sign in</a>
+            <a href="#/register">Register</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ===================== PUBLIC EXPLORE ===================== -->
+    <main class="container app-shell-main" v-else-if="!user && route === '/explore'">
+      <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+        <div>
+          <a href="#/" class="small text-decoration-none">← TrekManage</a>
+          <h1 class="brand-font h2 mb-1">Open & approved treks</h1>
+          <p class="text-muted mb-0">Live inventory from the API — book after you sign in as a trekker.</p>
+        </div>
+        <a class="btn btn-forest" href="#/register">Register to book</a>
+      </div>
+      <div class="panel mb-3">
+        <form class="row g-2" @submit.prevent="filterPublicTreks">
+          <div class="col-md-3"><input class="form-control" v-model="filter.q" placeholder="Search" /></div>
+          <div class="col-md-2">
+            <select class="form-select" v-model="filter.difficulty">
+              <option value="">Difficulty</option>
+              <option>Easy</option><option>Moderate</option><option>Hard</option>
+            </select>
+          </div>
+          <div class="col-md-2"><input class="form-control" v-model="filter.location" placeholder="Location" /></div>
+          <div class="col-md-2"><input type="number" min="1" class="form-control" v-model="filter.duration" placeholder="Days" /></div>
+          <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-forest flex-fill">Filter</button>
+            <button type="button" class="btn btn-outline-secondary" @click="resetPublicFilter">Reset</button>
+          </div>
+        </form>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6 col-xl-4" v-for="t in featuredTreks" :key="t.id">
+          <div class="trek-card">
+            <div class="media"><img :src="t.image_url || '/assets/media/trek-pass.jpg'" :alt="t.name" /></div>
+            <div class="body">
+              <div class="d-flex justify-content-between gap-2">
+                <h2 class="h5 brand-font mb-0">{{ t.name }}</h2>
+                <span class="badge" :class="'badge-' + t.status">{{ t.status }}</span>
+              </div>
+              <div class="text-muted small">{{ t.location }}</div>
+              <div class="small">{{ t.difficulty }} · {{ t.duration_days }}d · ₹{{ t.price }}</div>
+              <p class="small text-muted mb-0 flex-grow-1">{{ t.description }}</p>
+              <a class="btn btn-forest btn-sm mt-2" href="#/login">Sign in to book</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-12" v-if="!featuredTreks.length"><div class="panel empty-state">No treks match right now.</div></div>
+      </div>
+    </main>
+
+    <!-- ===================== AUTH ===================== -->
+    <section v-else-if="!user && (route === '/login' || route === '/register')" class="auth-split">
+      <aside class="auth-visual">
+        <img src="/assets/media/auth-side.jpg" alt="Hikers on a mountain trail" />
+        <div class="shade"></div>
+        <div class="copy">
+          <a class="brand-lockup text-white mb-3" href="#/">
+            <img src="/assets/brand-mark.jpg" alt="" /> TrekManage
+          </a>
+          <h1 class="brand-font display-6">Secure access by role</h1>
+          <p class="mb-0 opacity-90">JWT authentication with live database role checks. Admin is seeded programmatically — never public registration.</p>
+        </div>
+      </aside>
+      <div class="auth-form-pane">
+        <div class="auth-card">
+          <div class="text-center mb-3">
+            <div class="brand-font fs-3" style="color: var(--tm-forest)">{{ route === '/login' ? 'Welcome back' : 'Join the trail' }}</div>
+            <p class="text-muted mb-0">{{ route === '/login' ? 'Sign in to your portal' : 'Create your trekker account' }}</p>
+          </div>
+          <form @submit.prevent="route === '/login' ? doLogin() : doRegister()" novalidate>
+            <div class="mb-3" v-if="route === '/register'">
+              <label class="form-label">Full name</label>
+              <input class="form-control form-control-lg" v-model="authForm.name" required minlength="2" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control form-control-lg" v-model="authForm.email" required autocomplete="username" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-control form-control-lg" v-model="authForm.password" required minlength="10" :autocomplete="route==='/login' ? 'current-password' : 'new-password'" />
+              <div class="form-text" v-if="route === '/register'">Min 10 chars with upper, lower, digit, and symbol.</div>
+            </div>
+            <div class="mb-3" v-if="route === '/register'">
+              <label class="form-label">Phone</label>
+              <input class="form-control form-control-lg" v-model="authForm.phone" pattern="[0-9+\\-\\s]{7,20}" />
+            </div>
+            <button class="btn btn-forest btn-lg w-100" :disabled="loading">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+              {{ route === '/login' ? 'Sign in' : 'Create account' }}
+            </button>
+          </form>
+          <div class="text-center mt-3 small">
+            <a v-if="route === '/login'" href="#/register">New trekker? Register</a>
+            <a v-else href="#/login">Already have an account? Sign in</a>
+          </div>
+          <div v-if="labHints" class="small text-muted mt-3 border-top pt-3">
+            <strong>Local lab mode</strong> — credentials live in <code>.env</code> / <code>instance/</code>, never in the UI copy for production.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== APP PAGES ===================== -->
+    <main class="container app-shell-main" v-else-if="user">
+
       <!-- ADMIN DASHBOARD -->
-      <section v-else-if="route === '/admin' && isAdmin">
+      <section v-if="route === '/admin' && isAdmin">
         <div class="hero-panel mb-4">
-          <h1 class="h2 mb-2">Admin command centre</h1>
-          <p class="mb-0 opacity-75">Oversee treks, staff, bookings, and system health at a glance.</p>
+          <div class="row align-items-end">
+            <div class="col-lg-8">
+              <h1 class="h2 mb-2">Admin command centre</h1>
+              <p class="mb-0 opacity-75">Live inventory, bookings, and staff posture across every route.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+              <img src="/assets/trek-stickers.jpg" alt="" style="height:72px;border-radius:12px;opacity:.95" />
+            </div>
+          </div>
         </div>
         <div class="row g-3 mb-4">
           <div class="col-6 col-md-3" v-for="s in adminStatTiles" :key="s.label">
@@ -107,7 +348,7 @@
                     <tr v-for="b in adminDash.recent_bookings || []" :key="b.id">
                       <td>{{ b.user?.name }}</td>
                       <td>{{ b.trek?.name }}</td>
-                      <td><span class="badge badge-status" :class="'badge-' + b.status">{{ b.status }}</span></td>
+                      <td><span class="badge" :class="'badge-' + b.status">{{ b.status }}</span></td>
                       <td class="small text-muted">{{ formatDate(b.booking_date) }}</td>
                     </tr>
                     <tr v-if="!(adminDash.recent_bookings || []).length"><td colspan="4" class="empty-state">No bookings yet</td></tr>
@@ -137,13 +378,25 @@
           <h1 class="h3 brand-font mb-0">Trek routes</h1>
           <button class="btn btn-forest" @click="openTrekModal()">+ New trek</button>
         </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4" v-for="t in adminTreks.slice(0,3)" :key="'viz'+t.id">
+            <div class="trek-card">
+              <div class="media"><img :src="t.image_url || '/assets/media/trek-pass.jpg'" :alt="t.name" /></div>
+              <div class="body">
+                <div class="d-flex justify-content-between"><strong>{{ t.name }}</strong><span class="badge" :class="'badge-'+t.status">{{ t.status }}</span></div>
+                <div class="small text-muted">{{ t.location }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="panel table-responsive">
           <table class="table align-middle mb-0">
             <thead>
-              <tr><th>Name</th><th>Location</th><th>Difficulty</th><th>Slots</th><th>Status</th><th>Staff</th><th></th></tr>
+              <tr><th></th><th>Name</th><th>Location</th><th>Difficulty</th><th>Slots</th><th>Status</th><th>Staff</th><th></th></tr>
             </thead>
             <tbody>
               <tr v-for="t in adminTreks" :key="t.id">
+                <td style="width:56px"><img :src="t.image_url || '/assets/media/trek-pass.jpg'" alt="" style="width:48px;height:36px;object-fit:cover;border-radius:8px" /></td>
                 <td class="fw-semibold">{{ t.name }}</td>
                 <td>{{ t.location }}</td>
                 <td>{{ t.difficulty }}</td>
@@ -169,7 +422,7 @@
         </div>
         <div class="panel table-responsive">
           <table class="table align-middle mb-0">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Assigned treks</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Assigned</th><th></th></tr></thead>
             <tbody>
               <tr v-for="s in adminStaff" :key="s.id">
                 <td>{{ s.name }}</td>
@@ -224,9 +477,7 @@
         <h1 class="h3 brand-font mb-3">Search</h1>
         <div class="panel mb-3">
           <form class="row g-2" @submit.prevent="runSearch">
-            <div class="col-md-6">
-              <input class="form-control" v-model="searchForm.q" placeholder="Name, email, location, status…" required />
-            </div>
+            <div class="col-md-6"><input class="form-control" v-model="searchForm.q" placeholder="Name, email, location…" required /></div>
             <div class="col-md-3">
               <select class="form-select" v-model="searchForm.type">
                 <option value="all">All</option>
@@ -235,30 +486,22 @@
                 <option value="treks">Treks</option>
               </select>
             </div>
-            <div class="col-md-3">
-              <button class="btn btn-forest w-100">Search</button>
-            </div>
+            <div class="col-md-3"><button class="btn btn-forest w-100">Search</button></div>
           </form>
         </div>
         <div class="row g-3" v-if="searchResult">
-          <div class="col-md-4">
-            <div class="panel"><h2 class="h6">Users</h2>
-              <div v-for="u in searchResult.users" :key="'u'+u.id" class="small border-bottom py-1">{{ u.name }} · {{ u.email }}</div>
-              <div v-if="!searchResult.users.length" class="text-muted small">None</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="panel"><h2 class="h6">Staff</h2>
-              <div v-for="s in searchResult.staff" :key="'s'+s.id" class="small border-bottom py-1">{{ s.name }} · {{ s.email }}</div>
-              <div v-if="!searchResult.staff.length" class="text-muted small">None</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="panel"><h2 class="h6">Treks</h2>
-              <div v-for="t in searchResult.treks" :key="'t'+t.id" class="small border-bottom py-1">{{ t.name }} · {{ t.status }}</div>
-              <div v-if="!searchResult.treks.length" class="text-muted small">None</div>
-            </div>
-          </div>
+          <div class="col-md-4"><div class="panel"><h2 class="h6">Users</h2>
+            <div v-for="u in searchResult.users" :key="'u'+u.id" class="small border-bottom py-1">{{ u.name }} · {{ u.email }}</div>
+            <div v-if="!searchResult.users.length" class="text-muted small">None</div>
+          </div></div>
+          <div class="col-md-4"><div class="panel"><h2 class="h6">Staff</h2>
+            <div v-for="s in searchResult.staff" :key="'s'+s.id" class="small border-bottom py-1">{{ s.name }} · {{ s.email }}</div>
+            <div v-if="!searchResult.staff.length" class="text-muted small">None</div>
+          </div></div>
+          <div class="col-md-4"><div class="panel"><h2 class="h6">Treks</h2>
+            <div v-for="t in searchResult.treks" :key="'t'+t.id" class="small border-bottom py-1">{{ t.name }} · {{ t.status }}</div>
+            <div v-if="!searchResult.treks.length" class="text-muted small">None</div>
+          </div></div>
         </div>
       </section>
 
@@ -289,21 +532,11 @@
           <button class="btn btn-amber" @click="runMonthlyReport" :disabled="loading">Generate monthly report</button>
         </div>
         <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <div class="panel">
-              <h2 class="h6 brand-font">Popular treks</h2>
-              <div class="chart-wrap"><canvas id="chartPopular"></canvas></div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="panel">
-              <h2 class="h6 brand-font">Top participants</h2>
-              <div class="chart-wrap"><canvas id="chartParticipants"></canvas></div>
-            </div>
-          </div>
+          <div class="col-md-6"><div class="panel"><h2 class="h6 brand-font">Popular treks</h2><div class="chart-wrap"><canvas id="chartPopular"></canvas></div></div></div>
+          <div class="col-md-6"><div class="panel"><h2 class="h6 brand-font">Top participants</h2><div class="chart-wrap"><canvas id="chartParticipants"></canvas></div></div></div>
         </div>
         <div class="panel">
-          <h2 class="h6 brand-font">Recent notifications (mock/email/webhook)</h2>
+          <h2 class="h6 brand-font">Recent notifications</h2>
           <div class="table-responsive">
             <table class="table table-sm mb-0">
               <thead><tr><th>When</th><th>Channel</th><th>To</th><th>Subject</th></tr></thead>
@@ -321,11 +554,19 @@
         </div>
       </section>
 
-      <!-- STAFF DASHBOARD -->
+      <!-- STAFF -->
       <section v-else-if="route === '/staff' && isStaff">
         <div class="hero-panel mb-4">
-          <h1 class="h2 mb-2">Staff desk</h1>
-          <p class="mb-0 opacity-75">Manage assigned treks, slots, and participants.</p>
+          <div class="row align-items-end">
+            <div class="col-lg-8">
+              <h1 class="h2 mb-2">Staff desk</h1>
+              <p class="mb-0 opacity-75">Manage only the treks assigned to you — slots, status, participants.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 d-flex justify-content-lg-end gap-2">
+              <img src="/assets/svg/sticker-compass.svg" alt="" width="56" height="56" />
+              <img src="/assets/svg/sticker-pack.svg" alt="" width="56" height="56" />
+            </div>
+          </div>
         </div>
         <div class="row g-3 mb-4">
           <div class="col-4"><div class="stat-tile"><div class="label">Assigned</div><div class="value">{{ staffDash.summary?.assigned_count || 0 }}</div></div></div>
@@ -335,7 +576,7 @@
         <div class="row g-3">
           <div class="col-md-6 col-xl-4" v-for="t in staffDash.assigned_treks || []" :key="t.id">
             <div class="trek-card">
-              <div class="accent"></div>
+              <div class="media"><img :src="t.image_url || '/assets/media/trek-pass.jpg'" :alt="t.name" /></div>
               <div class="body">
                 <div class="d-flex justify-content-between">
                   <h2 class="h5 brand-font mb-0">{{ t.name }}</h2>
@@ -353,12 +594,11 @@
             </div>
           </div>
           <div class="col-12" v-if="!(staffDash.assigned_treks || []).length">
-            <div class="panel empty-state">No treks assigned yet. Ask admin to assign you.</div>
+            <div class="panel empty-state">No treks assigned yet.</div>
           </div>
         </div>
       </section>
 
-      <!-- STAFF PARTICIPANTS -->
       <section v-else-if="route.startsWith('/staff/trek/') && isStaff">
         <button class="btn btn-sm btn-outline-secondary mb-3" @click="navigate('/staff')">← Back</button>
         <h1 class="h3 brand-font">{{ participantsView.trek?.name }} — participants</h1>
@@ -378,11 +618,19 @@
         </div>
       </section>
 
-      <!-- USER DASHBOARD / BROWSE -->
+      <!-- USER BROWSE -->
       <section v-else-if="(route === '/user' || route === '/user/browse') && isUser">
         <div class="hero-panel mb-4">
-          <h1 class="h2 mb-2">Find your next trail</h1>
-          <p class="mb-0 opacity-75">Browse Open and Approved treks. Book when status is Open.</p>
+          <div class="row align-items-end">
+            <div class="col-lg-8">
+              <h1 class="h2 mb-2">Find your next trail</h1>
+              <p class="mb-0 opacity-75">Filter Open & Approved treks. Booking unlocks only when status is Open.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 d-flex justify-content-lg-end gap-2">
+              <img src="/assets/svg/sticker-peak.svg" alt="" width="56" height="56" />
+              <img src="/assets/svg/sticker-pin.svg" alt="" width="56" height="56" />
+            </div>
+          </div>
         </div>
         <div class="row g-3 mb-3">
           <div class="col-4"><div class="stat-tile"><div class="label">Booked</div><div class="value">{{ userDash.summary?.booked || 0 }}</div></div></div>
@@ -391,7 +639,7 @@
         </div>
         <div class="panel mb-3">
           <form class="row g-2" @submit.prevent="filterTreks">
-            <div class="col-md-3"><input class="form-control" v-model="filter.q" placeholder="Search name/location" /></div>
+            <div class="col-md-3"><input class="form-control" v-model="filter.q" placeholder="Search" /></div>
             <div class="col-md-2">
               <select class="form-select" v-model="filter.difficulty">
                 <option value="">Difficulty</option>
@@ -409,14 +657,14 @@
         <div class="row g-3">
           <div class="col-md-6 col-xl-4" v-for="t in filteredTreks" :key="t.id">
             <div class="trek-card">
-              <div class="accent"></div>
+              <div class="media"><img :src="t.image_url || '/assets/media/trek-pass.jpg'" :alt="t.name" /></div>
               <div class="body">
                 <div class="d-flex justify-content-between gap-2">
                   <h2 class="h5 brand-font mb-0">{{ t.name }}</h2>
                   <span class="badge" :class="'badge-' + t.status">{{ t.status }}</span>
                 </div>
                 <div class="text-muted small">{{ t.location }}</div>
-                <div class="small">{{ t.difficulty }} · {{ t.duration_days }} day(s) · ₹{{ t.price }}</div>
+                <div class="small">{{ t.difficulty }} · {{ t.duration_days }}d · ₹{{ t.price }}</div>
                 <div class="small">{{ formatDate(t.start_date) }} → {{ formatDate(t.end_date) }}</div>
                 <div class="small">Slots left: <strong>{{ t.available_slots }}</strong></div>
                 <p class="small text-muted mb-0 flex-grow-1">{{ t.description }}</p>
@@ -438,9 +686,10 @@
         </div>
         <div class="panel table-responsive mb-3">
           <table class="table align-middle mb-0">
-            <thead><tr><th>Trek</th><th>Location</th><th>Status</th><th>Dates</th><th></th></tr></thead>
+            <thead><tr><th></th><th>Trek</th><th>Location</th><th>Status</th><th>Dates</th><th></th></tr></thead>
             <tbody>
               <tr v-for="b in userBookings" :key="b.id">
+                <td style="width:56px"><img :src="trekImage(b)" alt="" style="width:48px;height:36px;object-fit:cover;border-radius:8px" /></td>
                 <td>{{ b.trek?.name }}</td>
                 <td>{{ b.trek?.location }}</td>
                 <td><span class="badge" :class="'badge-' + b.status">{{ b.status }}</span></td>
@@ -449,7 +698,7 @@
                   <button class="btn btn-sm btn-outline-danger" v-if="b.status === 'Booked'" @click="cancelBooking(b)">Cancel</button>
                 </td>
               </tr>
-              <tr v-if="!userBookings.length"><td colspan="5" class="empty-state">No bookings yet</td></tr>
+              <tr v-if="!userBookings.length"><td colspan="6" class="empty-state">No bookings yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -485,13 +734,13 @@
             <div class="mb-3"><label class="form-label">Phone</label><input class="form-control" v-model="profileForm.phone" /></div>
             <div class="mb-3"><label class="form-label">Address</label><input class="form-control" v-model="profileForm.address" /></div>
             <div class="mb-3"><label class="form-label">Emergency contact</label><input class="form-control" v-model="profileForm.emergency_contact" /></div>
-            <div class="mb-3"><label class="form-label">New password</label><input type="password" class="form-control" v-model="profileForm.password" minlength="6" placeholder="Leave blank to keep" /></div>
+            <div class="mb-3"><label class="form-label">New password</label><input type="password" class="form-control" v-model="profileForm.password" minlength="10" placeholder="Leave blank to keep" /></div>
             <button class="btn btn-forest">Save profile</button>
           </form>
         </div>
       </section>
 
-      <section v-else-if="user">
+      <section v-else>
         <div class="panel empty-state">Page not found or not available for your role.</div>
       </section>
     </main>
@@ -500,7 +749,7 @@
       TrekManage · MAD-2 Trekking Management Application V2
     </footer>
 
-    <!-- Trek modal -->
+    <!-- Modals (trek / assign / staff / staff-trek) -->
     <div class="modal fade" id="trekModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -526,6 +775,7 @@
               <div class="col-md-4"><label class="form-label">Price (₹)</label><input type="number" min="0" step="0.01" class="form-control" v-model.number="trekForm.price" /></div>
               <div class="col-md-6"><label class="form-label">Start date</label><input type="date" class="form-control" v-model="trekForm.start_date" required /></div>
               <div class="col-md-6"><label class="form-label">End date</label><input type="date" class="form-control" v-model="trekForm.end_date" required /></div>
+              <div class="col-12"><label class="form-label">Cover image URL</label><input class="form-control" v-model="trekForm.image_url" placeholder="/assets/media/trek-pass.jpg" /></div>
               <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" rows="2" v-model="trekForm.description"></textarea></div>
               <div class="col-12"><label class="form-label">Instructions</label><textarea class="form-control" rows="2" v-model="trekForm.instructions"></textarea></div>
             </div>
@@ -538,7 +788,6 @@
       </div>
     </div>
 
-    <!-- Assign staff modal -->
     <div class="modal fade" id="assignModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -560,7 +809,6 @@
       </div>
     </div>
 
-    <!-- Staff create modal -->
     <div class="modal fade" id="staffModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -582,7 +830,6 @@
       </div>
     </div>
 
-    <!-- Staff manage trek modal -->
     <div class="modal fade" id="staffTrekModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">

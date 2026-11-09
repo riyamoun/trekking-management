@@ -82,10 +82,11 @@ def create_app(config_class: type = Config) -> Flask:
 
     with app.app_context():
         from backend import models  # noqa: F401
-
-        db.create_all()
+        from backend.schema_utils import ensure_sqlite_columns
         from backend.seed import seed_database
 
+        db.create_all()
+        ensure_sqlite_columns()
         seed_database()
 
     return app

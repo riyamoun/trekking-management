@@ -83,6 +83,8 @@ class Trek(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     price = db.Column(db.Float, default=0.0)
     instructions = db.Column(db.Text)
+    image_url = db.Column(db.String(500))
+    gallery_urls = db.Column(db.Text)  # comma-separated optional extras
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
@@ -114,6 +116,13 @@ class Trek(db.Model):
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "price": self.price,
             "instructions": self.instructions,
+            "image_url": self.image_url
+            or "/assets/media/trek-pass.jpg",
+            "gallery": [
+                g.strip()
+                for g in (self.gallery_urls or "").split(",")
+                if g.strip()
+            ],
             "booked_count": self.booked_count(),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

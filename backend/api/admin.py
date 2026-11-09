@@ -173,6 +173,8 @@ def create_trek():
         end_date=end_date,
         price=float(data.get("price") or 0),
         instructions=(data.get("instructions") or "").strip() or None,
+        image_url=(data.get("image_url") or "").strip() or None,
+        gallery_urls=(data.get("gallery_urls") or "").strip() or None,
     )
     db.session.add(trek)
     db.session.commit()
@@ -214,6 +216,10 @@ def update_trek(trek_id: int):
         trek.price = float(data["price"] or 0)
     if "instructions" in data:
         trek.instructions = data["instructions"]
+    if "image_url" in data:
+        trek.image_url = (data.get("image_url") or "").strip() or None
+    if "gallery_urls" in data:
+        trek.gallery_urls = (data.get("gallery_urls") or "").strip() or None
 
     db.session.commit()
     invalidate_trek_caches(trek.id)
