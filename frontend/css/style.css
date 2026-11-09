@@ -1,0 +1,246 @@
+/* TrekManage — Bootstrap-friendly theme (no other CSS frameworks) */
+:root {
+  --tm-forest: #1f6b4a;
+  --tm-forest-dark: #144833;
+  --tm-moss: #3d8b6e;
+  --tm-mist: #e8f2ec;
+  --tm-sand: #f7f3ea;
+  --tm-ink: #1a2b24;
+  --tm-muted: #5d7268;
+  --tm-amber: #c9852c;
+  --tm-danger: #b33a3a;
+  --tm-radius: 0.85rem;
+  --tm-shadow: 0 12px 32px rgba(26, 43, 36, 0.08);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  color: var(--tm-ink);
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(61, 139, 110, 0.18), transparent 60%),
+    radial-gradient(900px 420px at 100% 0%, rgba(201, 133, 44, 0.12), transparent 55%),
+    linear-gradient(180deg, var(--tm-sand) 0%, #eef5f0 45%, #e7efe9 100%);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, .brand-font {
+  font-family: "Fraunces", Georgia, serif;
+  letter-spacing: -0.02em;
+}
+
+.navbar-trek {
+  background: linear-gradient(120deg, var(--tm-forest-dark), var(--tm-forest) 55%, var(--tm-moss));
+  box-shadow: 0 4px 18px rgba(20, 72, 51, 0.25);
+}
+
+.navbar-trek .navbar-brand {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: 1.35rem;
+}
+
+.navbar-trek .nav-link.active {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding-inline: 0.9rem !important;
+}
+
+.hero-panel {
+  background:
+    linear-gradient(135deg, rgba(20, 72, 51, 0.92), rgba(31, 107, 74, 0.78)),
+    url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.08'%3E%3Cpath d='M0 120 L40 60 L80 100 L120 40 L160 90'/%3E%3C/g%3E%3C/svg%3E");
+  color: #fff;
+  border-radius: calc(var(--tm-radius) + 0.25rem);
+  padding: 2.5rem 2rem;
+  box-shadow: var(--tm-shadow);
+  position: relative;
+  overflow: hidden;
+  animation: riseIn 0.7s ease both;
+}
+
+.hero-panel::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -40% auto;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.stat-tile {
+  background: #fff;
+  border: 1px solid rgba(31, 107, 74, 0.08);
+  border-radius: var(--tm-radius);
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--tm-shadow);
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: riseIn 0.55s ease both;
+}
+
+.stat-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(26, 43, 36, 0.12);
+}
+
+.stat-tile .label {
+  color: var(--tm-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.stat-tile .value {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 2rem;
+  color: var(--tm-forest);
+  line-height: 1.1;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid rgba(31, 107, 74, 0.08);
+  border-radius: var(--tm-radius);
+  box-shadow: var(--tm-shadow);
+  padding: 1.25rem;
+  animation: riseIn 0.5s ease both;
+}
+
+.trek-card {
+  border: 1px solid rgba(31, 107, 74, 0.1);
+  border-radius: var(--tm-radius);
+  background: #fff;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trek-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(26, 43, 36, 0.12);
+}
+
+.trek-card .accent {
+  height: 6px;
+  background: linear-gradient(90deg, var(--tm-forest), var(--tm-amber));
+}
+
+.trek-card .body {
+  padding: 1.1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+}
+
+.badge-status {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-Open { background: #1f6b4a !important; }
+.badge-Approved { background: #2f6f9f !important; }
+.badge-Pending { background: #8a6d3b !important; }
+.badge-Closed { background: #5d7268 !important; }
+.badge-Completed { background: #3d5a80 !important; }
+.badge-Booked { background: #1f6b4a !important; }
+.badge-Cancelled { background: #b33a3a !important; }
+
+.btn-forest {
+  --bs-btn-bg: var(--tm-forest);
+  --bs-btn-border-color: var(--tm-forest);
+  --bs-btn-hover-bg: var(--tm-forest-dark);
+  --bs-btn-hover-border-color: var(--tm-forest-dark);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--tm-forest-dark);
+  --bs-btn-active-border-color: var(--tm-forest-dark);
+  --bs-btn-active-color: #fff;
+}
+
+.btn-amber {
+  --bs-btn-bg: var(--tm-amber);
+  --bs-btn-border-color: var(--tm-amber);
+  --bs-btn-hover-bg: #a86f1f;
+  --bs-btn-hover-border-color: #a86f1f;
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+.auth-shell {
+  min-height: calc(100vh - 70px);
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: min(440px, 100%);
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: var(--tm-shadow);
+  padding: 2rem 1.75rem;
+  border: 1px solid rgba(31, 107, 74, 0.1);
+  animation: riseIn 0.55s ease both;
+}
+
+.table thead th {
+  background: var(--tm-mist);
+  color: var(--tm-forest-dark);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: none;
+}
+
+.alert-float {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  z-index: 1080;
+  min-width: min(360px, calc(100vw - 32px));
+  box-shadow: var(--tm-shadow);
+  animation: slideIn 0.35s ease both;
+}
+
+.footer-trek {
+  color: var(--tm-muted);
+  font-size: 0.9rem;
+  padding: 2rem 0 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--tm-muted);
+}
+
+.chart-wrap {
+  position: relative;
+  height: 280px;
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 767.98px) {
+  .hero-panel { padding: 1.75rem 1.25rem; }
+  .stat-tile .value { font-size: 1.6rem; }
+}
