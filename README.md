@@ -58,6 +58,15 @@ celery -A celery_app.celery_config.celery worker --loglevel=INFO
 celery -A celery_app.celery_config.celery beat --loglevel=INFO
 ```
 
+### If the browser says “refused to connect”
+
+`http://127.0.0.1:3847` only works **on the machine where Flask is running**.
+
+- Opening that URL on your laptop **without** running `python3 scripts/start-local.py` first → connection refused (nothing is listening).
+- The Cursor cloud agent’s server is on a remote VM — your laptop’s `127.0.0.1` is not that VM.
+- **See it inside Cursor now:** use **Try Live → Desktop** (the VM already has the app open in Chrome).
+- **For the instructor on your laptop:** clone the repo, start Redis, run `python3 scripts/start-local.py`, then open the URL it prints.
+
 ### Lab accounts (from `.env.example` when `SEED_DEMO_DATA=true`)
 
 | Role | Email | Password |
