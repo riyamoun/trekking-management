@@ -6,95 +6,31 @@ Public marketing site plus role dashboards (admin / staff / trekker), JWT authen
 
 ## Run on your laptop (instructor / viva)
 
-The cloud agent preview is **not** on your machine. Clone the repo and start it locally so your instructor opens a normal browser tab on **your** device.
+**Full line-by-line guide:** see [`LOCAL-SETUP.md`](./LOCAL-SETUP.md) (install → clone → venv → `.env` → run → browser → accounts).
 
-### Prerequisites
-
-- Python 3.10+
-- On Ubuntu / Debian / WSL you also need the venv package once:
+Short path (Ubuntu / WSL) after reading that file:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y python3.12-venv python3-venv
-```
-
-- Redis is **optional for the UI / dashboards** (trek list still works). Needed only for Redis cache + Celery jobs.
-
-```bash
-# Only if you want cache + Celery (skip this for a quick UI demo)
-
-# Ubuntu / Debian / WSL
-sudo apt-get update && sudo apt-get install -y redis-server
-sudo service redis-server start
-# or: redis-server --daemonize yes
-
-# macOS (Homebrew)
-brew install redis && brew services start redis
-```
-
-If `redis-server: command not found`, **ignore it for now** and start Flask anyway.
-
-### One-command start
-
-```bash
+sudo apt-get install -y git python3 python3-pip python3.12-venv redis-server
+sudo service redis-server start   # optional for UI-only demo
+cd ~
 git clone https://github.com/riyamoun/trekking-management.git
 cd trekking-management
-git checkout cursor/trekking-management-github-a742   # or main after merge
-
-python3 scripts/start-local.py
-```
-
-That script creates `.venv`, copies `.env.example` → `.env` if needed, starts Flask, and opens:
-
-**http://127.0.0.1:3847/**
-
-Press `Ctrl+C` in that terminal to stop.
-
-### Manual start (same result)
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+git checkout cursor/trekking-management-github-a742
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env               # first time only
+cp .env.example .env
+# set ADMIN_PASSWORD=TrekLab#Admin9x, DEMO_* passwords, SEED_DEMO_DATA=true
 python run.py
-# then open http://127.0.0.1:3847/
+# open http://127.0.0.1:3847/
 ```
-
-### Optional Celery (reminders / CSV / monthly report)
-
-In two extra terminals (venv activated, Redis up):
-
-```bash
-celery -A celery_app.celery_config.celery worker --loglevel=INFO
-celery -A celery_app.celery_config.celery beat --loglevel=INFO
-```
-
-### If the browser says “refused to connect”
-
-`http://127.0.0.1:3847` only works **on the machine where Flask is running**.
-
-- Opening that URL on your laptop **without** running `python3 scripts/start-local.py` first → connection refused (nothing is listening).
-- The Cursor cloud agent’s server is on a remote VM — your laptop’s `127.0.0.1` is not that VM.
-- **See it inside Cursor now:** use **Try Live → Desktop** (the VM already has the app open in Chrome).
-- **For the instructor on your laptop:** clone the repo, start Redis, run `python3 scripts/start-local.py`, then open the URL it prints.
-
-### Lab accounts (from `.env.example` when `SEED_DEMO_DATA=true`)
 
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | `admin@trekmanage.local` | `TrekLab#Admin9x` |
 | Staff | `staff1@trekmanage.local` | `TrekLab#Staff9x` |
 | Trekker | `trekker1@example.com` | `TrekLab#User9x` |
-
-Change these in `.env` before first boot if you prefer. Never commit `.env` or `instance/`.
-
-### What to show the instructor
-
-1. Public home `#/` — hero, stickers, video, portals  
-2. Explore `#/explore` — trek cards with photos  
-3. Sign in as each role — admin / staff / trekker dashboards  
-4. Optional: trigger CSV export / monthly report with Celery running  
 
 ## Architecture (viva-ready)
 
