@@ -247,14 +247,17 @@ def create_staff():
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip().lower()
     name = (data.get("name") or "").strip()
-    password = data.get("password") or "Staff@123"
+    password = data.get("password") or ""
     errors = {}
     if not name:
         errors["name"] = "Name is required"
     if not is_valid_email(email):
         errors["email"] = "Valid email required"
-    if len(password) < 6:
-        errors["password"] = "Password min 6 characters"
+    from backend.security import password_policy_error
+
+    pwd_err = password_policy_error(password, min_length=10)
+    if pwd_err:
+        errors["password"] = pwd_err
     if errors:
         return jsonify({"error": "Validation failed", "fields": errors}), 400
     if User.query.filter_by(email=email).first():
@@ -285,8 +288,11 @@ def update_staff(staff_id: int):
     if "address" in data:
         staff.address = data["address"]
     if "password" in data and data["password"]:
-        if len(data["password"]) < 6:
-            return jsonify({"error": "Password min 6 characters"}), 400
+        from backend.security import password_policy_error
+
+        pwd_err = password_policy_error(data["password"], min_length=10)
+        if pwd_err:
+            return jsonify({"error": pwd_err}), 400
         staff.set_password(data["password"])
     db.session.commit()
     return jsonify({"message": "Staff updated", "staff": staff.to_dict(include_sensitive=True)})

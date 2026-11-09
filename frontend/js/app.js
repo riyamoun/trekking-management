@@ -10,6 +10,7 @@ createApp({
     const user = ref(JSON.parse(localStorage.getItem(USER_KEY) || "null"));
     const route = ref(window.location.hash.slice(1) || "/");
     const loading = ref(false);
+    const labHints = ref(false);
     const toast = reactive({ show: false, message: "", type: "success" });
 
     const authForm = reactive({ name: "", email: "", password: "", phone: "" });
@@ -64,7 +65,7 @@ createApp({
       instructions: "",
     });
     const assignForm = reactive({ trekId: null, trekName: "", staff_ids: [] });
-    const staffForm = reactive({ name: "", email: "", phone: "", password: "Staff@123" });
+    const staffForm = reactive({ name: "", email: "", phone: "", password: "" });
 
     const isAdmin = computed(() => user.value?.role === "admin");
     const isStaff = computed(() => user.value?.role === "staff");
@@ -190,8 +191,8 @@ createApp({
         showToast("Name is required", "danger");
         return;
       }
-      if (!authForm.email || authForm.password.length < 6) {
-        showToast("Valid email and password (min 6) required", "danger");
+      if (!authForm.email || authForm.password.length < 10) {
+        showToast("Valid email and strong password (min 10) required", "danger");
         return;
       }
       loading.value = true;
@@ -399,7 +400,7 @@ createApp({
     }
 
     function openStaffModal() {
-      Object.assign(staffForm, { name: "", email: "", phone: "", password: "Staff@123" });
+      Object.assign(staffForm, { name: "", email: "", phone: "", password: "" });
       bootstrap.Modal.getOrCreateInstance(document.getElementById("staffModal")).show();
     }
 
@@ -662,6 +663,12 @@ createApp({
     }
 
     onMounted(async () => {
+      try {
+        const meta = await api("/api/meta");
+        labHints.value = !!(meta.show_lab_hints && meta.lab_mode);
+      } catch {
+        labHints.value = false;
+      }
       if (!window.location.hash) {
         window.location.hash = user.value ? homeForRole(user.value.role) : "/login";
       }
@@ -683,6 +690,7 @@ createApp({
       user,
       route,
       loading,
+      labHints,
       toast,
       authForm,
       adminDash,

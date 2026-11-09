@@ -1,157 +1,122 @@
 # TrekManage — Trekking Management Application V2
 
-IIT Madras BS Degree · App Development II (MAD-2) project.
+IIT Madras BS Degree · App Development II (MAD-2).
 
-Flask API + Vue.js (CDN) SPA + Bootstrap UI + SQLite + Redis cache + Celery batch jobs.
+Production-minded Flask API + Vue.js (CDN) SPA + Bootstrap UI + SQLite + Redis cache + Celery workers, with JWT RBAC reconciled against the live database on every protected request.
+
+## Architecture (viva-ready)
+
+| Layer | Technology | Notes |
+|------|------------|--------|
+| API | Flask + Flask-JWT-Extended | Unified `User` model (`admin` / `staff` / `user`) |
+| UI | Vue 3 CDN + Bootstrap 5 | Role dashboards, Chart.js analytics |
+| DB | SQLite via SQLAlchemy | Created only by `db.create_all()` + seed |
+| Cache | Redis | Open-trek listing TTL + invalidation on mutations |
+| Jobs | Celery + Redis | Daily reminders, monthly HTML/PDF report, CSV export |
+| Secrets | Env or `instance/runtime_secrets.json` | No hardcoded signing keys or demo passwords in source |
+
+**Security posture**
+
+- Signing keys: from env, else cryptographically generated and persisted under `instance/` (gitignored)
+- Admin bootstrap password: from `ADMIN_PASSWORD` or one-time random → `instance/BOOTSTRAP_ADMIN.txt`
+- Lab fixtures (`SEED_DEMO_DATA`) off by default; published UI never shows credentials
+- Authorization uses **database role**, not JWT claim alone
+- Public trek APIs expose only `Open` / `Approved`; other statuses require proper access
+- CORS allowlist (empty = same-origin only); Flask debug off unless `FLASK_DEBUG=1`
+- Password policy: ≥10 chars, upper, lower, digit, symbol
 
 ## Features
 
 | Role | Capabilities |
 |------|----------------|
-| **Admin** | Dashboard stats, trek CRUD, staff create/manage, assign staff, search users/staff/treks, deactivate/blacklist, all bookings, ChartJS analytics, trigger monthly report |
-| **Trek Staff** | Dashboard of assigned treks, update slots/status, participant list, mark started/completed (assigned treks only) |
-| **Trekker** | Self-register, browse/filter Open & Approved treks, book (Open only), cancel, history, profile, async CSV export |
+| **Admin** | Dashboard, trek CRUD, staff lifecycle, assignments, search, deactivate/blacklist, bookings, Chart.js reports, monthly report trigger |
+| **Trek Staff** | Assigned treks only — slots/status, participants, mark started/completed |
+| **Trekker** | Register, filter/book Open treks, history, profile, async CSV export |
 
-**Domain rules:** no overbooking, no duplicate active bookings, book only when status is `Open`, staff may manage only assigned treks.
+**Domain rules:** no overbooking, no duplicate active bookings, book only when `Open`, staff may manage only assigned treks.
 
-**Celery jobs:** daily trek reminders · monthly HTML+PDF admin report (1st of month) · user-triggered booking CSV export with completion alert.
+## Quick start (local lab)
 
-**Recommended extras included:** ChartJS admin analytics, responsive Bootstrap UI, HTML+PDF monthly report, frontend+backend validation, booking confirmation/cancellation notifications (email/webhook with local mock fallback).
-
-## Stack (MAD-2 mandatory)
-
-- Flask (API)
-- Vue.js 3 via CDN (Jinja2 not used for UI pages)
-- Bootstrap 5 only (no other CSS frameworks)
-- SQLite created programmatically (`db.create_all` + seed)
-- Redis for caching frequently accessed open treks (TTL)
-- Redis + Celery for batch jobs
-
-## Quick start (local)
-
-### 1. Prerequisites
+### Prerequisites
 
 - Python 3.10+
-- Redis server running locally (`redis-server`)
+- Redis (`redis-server`)
 
 ```bash
-# Ubuntu/Debian
-sudo apt-get install -y redis-server
+sudo apt-get install -y redis-server   # if needed
 redis-server --daemonize yes
-redis-cli ping   # expect PONG
+redis-cli ping
 ```
 
-### 2. Setup
+### Setup
 
 ```bash
 cd <project-root>
 python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # optional — defaults work for local demo
+cp .env.example .env
+# Edit .env:
+#   ADMIN_PASSWORD=<strong password>
+#   SEED_DEMO_DATA=true          # optional viva fixtures
+#   DEMO_STAFF_PASSWORD=...
+#   DEMO_USER_PASSWORD=...
+#   SHOW_LAB_HINTS=true          # optional UI hint (no passwords shown)
 ```
 
-### 3. Run services (4 terminals)
+If `ADMIN_PASSWORD` is omitted, the first boot writes credentials to `instance/BOOTSTRAP_ADMIN.txt`.
 
-**Terminal A — Flask (API + Vue SPA)**
+### Run (4 processes)
 
 ```bash
-source .venv/bin/activate
 python run.py
-# App: http://127.0.0.1:3847
-```
+# http://127.0.0.1:3847
 
-**Terminal B — Celery worker**
-
-```bash
-source .venv/bin/activate
 celery -A celery_app.celery_config.celery worker --loglevel=INFO
-```
-
-**Terminal C — Celery beat (schedules)**
-
-```bash
-source .venv/bin/activate
 celery -A celery_app.celery_config.celery beat --loglevel=INFO
+redis-server   # if not already running
 ```
 
-**Terminal D — Redis** (if not already a service)
+### Lab accounts (only when `SEED_DEMO_DATA=true`)
 
-```bash
-redis-server
-```
+Passwords come from your `.env` (`DEMO_*`) or `instance/DEMO_CREDENTIALS.txt` — **never commit them**.
 
-### 4. Demo logins (seeded automatically on first boot)
-
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@trekmanage.local` | `Admin@123` |
-| Staff | `staff1@trekmanage.local` | `Staff@123` |
-| Staff | `staff2@trekmanage.local` | `Staff@123` |
-| User | `trekker1@example.com` | `User@123` |
-| User | `trekker2@example.com` | `User@123` |
-
-Admin is created programmatically after DB init — there is **no admin registration**.
+| Role | Email (when seeded) |
+|------|---------------------|
+| Admin | value of `ADMIN_EMAIL_SEED` |
+| Staff | `staff1@trekmanage.local`, `staff2@trekmanage.local` |
+| User | `trekker1@example.com`, … |
 
 ## Project structure
 
 ```
-├── backend/           # Flask app factory, models, APIs, seed, cache, notifications
-│   ├── api/           # auth, admin, staff, user, treks blueprints
-│   ├── models.py      # Unified User + Trek + Booking + ExportJob
-│   └── seed.py        # Admin + demo data
-├── celery_app/        # Celery worker/beat + tasks
+├── backend/           # Flask factory, models, APIs, seed, cache, security
+│   ├── api/           # auth, admin, staff, user, treks
+│   ├── security.py    # runtime secrets + password policy
+│   └── seed.py        # admin bootstrap + optional lab fixtures
+├── celery_app/        # worker/beat + tasks
 ├── frontend/          # Vue CDN SPA + Bootstrap
-│   ├── index.html
-│   ├── css/style.css
-│   └── js/app.js
-├── instance/          # SQLite DB (gitignored, created at runtime)
-├── exports/           # CSV exports (gitignored)
-├── reports/           # Monthly reports + notification mock log
+├── instance/          # DB + runtime secrets (gitignored)
+├── exports/ · reports/
 ├── run.py
-├── requirements.txt
-└── .env.example
+└── requirements.txt
 ```
 
 ## API overview
 
-- `POST /api/auth/register` — trekker self-register
-- `POST /api/auth/login` — all roles
-- `GET  /api/auth/me`
-- `GET  /api/treks` — public/open listing (Redis-cached)
-- `GET|POST|PUT|DELETE /api/admin/treks` — admin trek CRUD
-- `POST /api/admin/staff` · `POST /api/admin/treks/:id/assign-staff`
-- `GET  /api/admin/search` · `PATCH /api/admin/people/:id/status`
-- `GET  /api/admin/dashboard` · `/reports/summary` · `POST /reports/monthly/run`
-- `GET|PATCH /api/staff/...` — assigned-trek management
-- `POST /api/user/bookings` · cancel · history · profile
-- `POST /api/user/exports/bookings` — Celery CSV job
+- `GET  /api/meta` · `GET /api/health`
+- `POST /api/auth/register` · `POST /api/auth/login` · `GET /api/auth/me`
+- `GET  /api/treks` (public Open/Approved, Redis-cached)
+- Admin / staff / user blueprints under `/api/admin`, `/api/staff`, `/api/user`
+- JWT: `Authorization: Bearer <token>`
 
-JWT: send `Authorization: Bearer <token>` on protected routes.
+## Celery jobs
+
+1. **Daily reminders** (08:00 IST) — upcoming bookings via email/webhook (mock if unset)
+2. **Monthly report** (1st, 09:00 IST) — HTML + PDF for admin; also triggerable from UI
+3. **CSV export** — user-triggered; completion notification + download
 
 ## Notifications / secrets
 
-If `MAIL_*` or `WEBHOOK_URL` are empty, notifications are written to:
-
-- `reports/notifications.log`
-- `notification_logs` DB table (visible on Admin → Reports)
-
-No secrets are committed. Copy `.env.example` → `.env` for local overrides.
-
-## Manual job triggers (viva)
-
-- Admin UI → **Reports** → “Generate monthly report”
-- User UI → **My bookings** → “Export CSV (async)”
-- Celery beat runs daily reminders at 08:00 IST and monthly report on the 1st at 09:00 IST
-
-```bash
-# Optional one-shot from Python shell
-source .venv/bin/activate
-python -c "from celery_app.tasks import send_daily_reminders; print(send_daily_reminders.delay().id)"
-```
-
-## Notes for evaluation / viva
-
-- Database is **never** created manually — Flask `db.create_all()` + seed on startup.
-- Redis caches the open-treks listing (`treks:open`) with configurable TTL.
-- Only Bootstrap is used for styling; ChartJS is used only for admin charts (allowed recommended option).
+Empty `MAIL_*` / `WEBHOOK_URL` → `reports/notifications.log` + DB `notification_logs`.  
+Published deploys should set `SECRET_KEY`, `JWT_SECRET_KEY`, and `ADMIN_PASSWORD` via host secrets; otherwise strong values are auto-generated into `instance/`.

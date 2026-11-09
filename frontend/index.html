@@ -57,7 +57,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Password</label>
-              <input type="password" class="form-control" v-model="authForm.password" required minlength="6" />
+              <input type="password" class="form-control" v-model="authForm.password" required minlength="10" autocomplete="current-password" />
             </div>
             <div class="mb-3" v-if="route === '/register'">
               <label class="form-label">Phone</label>
@@ -72,11 +72,9 @@
             <a v-if="route === '/login'" href="#/register">New trekker? Register</a>
             <a v-else href="#/login">Already have an account? Login</a>
           </div>
-          <hr />
-          <div class="small text-muted">
-            <strong>Demo:</strong> admin@trekmanage.local / Admin@123<br />
-            staff1@trekmanage.local / Staff@123<br />
-            trekker1@example.com / User@123
+          <div v-if="labHints" class="small text-muted mt-3 border-top pt-3">
+            <strong>Local lab mode</strong> — use credentials from your
+            <code>instance/</code> bootstrap files or local <code>.env</code>. Never commit them.
           </div>
         </div>
       </section>
@@ -573,7 +571,7 @@
               <div class="mb-3"><label class="form-label">Name</label><input class="form-control" v-model="staffForm.name" required /></div>
               <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" v-model="staffForm.email" required /></div>
               <div class="mb-3"><label class="form-label">Phone</label><input class="form-control" v-model="staffForm.phone" /></div>
-              <div class="mb-3"><label class="form-label">Password</label><input type="password" class="form-control" v-model="staffForm.password" required minlength="6" /></div>
+              <div class="mb-3"><label class="form-label">Password</label><input type="password" class="form-control" v-model="staffForm.password" required minlength="10" placeholder="Min 10 chars, mixed case, digit, symbol" /></div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

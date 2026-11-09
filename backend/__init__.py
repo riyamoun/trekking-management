@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from flask import Flask, send_from_directory
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 
 from backend.config import Config
@@ -21,12 +21,19 @@ def create_app(config_class: type = Config) -> Flask:
     )
     app.config.from_object(config_class)
 
-    # Ensure runtime directories exist
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     Path(app.config["EXPORTS_DIR"]).mkdir(parents=True, exist_ok=True)
     Path(app.config["REPORTS_DIR"]).mkdir(parents=True, exist_ok=True)
 
-    CORS(app, supports_credentials=True)
+    # Same-origin SPA by default; optional explicit CORS allowlist (no wildcard)
+    origins = app.config.get("CORS_ORIGINS") or []
+    if origins:
+        CORS(
+            app,
+            resources={r"/api/*": {"origins": origins}},
+            supports_credentials=True,
+        )
+
     db.init_app(app)
     jwt.init_app(app)
     redis_client.init_app(app)
@@ -35,13 +42,36 @@ def create_app(config_class: type = Config) -> Flask:
 
     register_blueprints(app)
 
+    @app.get("/api/meta")
+    def meta():
+        """Public deployment metadata — never includes credentials."""
+        return jsonify(
+            {
+                "app": "TrekManage",
+                "version": "2.1.0",
+                "lab_mode": bool(app.config.get("SEED_DEMO_DATA")),
+                "show_lab_hints": bool(app.config.get("SHOW_LAB_HINTS")),
+                "auth": "JWT",
+                "cache": "Redis",
+                "jobs": "Celery",
+            }
+        )
+
+    @app.get("/api/health")
+    def health():
+        redis_ok = False
+        try:
+            redis_ok = bool(redis_client.client.ping())
+        except Exception:
+            redis_ok = False
+        return jsonify({"status": "ok", "redis": redis_ok})
+
     @app.route("/")
     def index():
         return send_from_directory(frontend_dir, "index.html")
 
     @app.errorhandler(404)
     def spa_fallback(e):
-        # API 404s stay JSON; unknown UI routes fall back to SPA entry
         from flask import request
 
         if request.path.startswith("/api/"):

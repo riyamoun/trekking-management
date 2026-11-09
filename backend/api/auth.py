@@ -6,15 +6,14 @@ from flask_jwt_extended import create_access_token
 from backend.auth_utils import current_user, login_required
 from backend.extensions import db
 from backend.models import User
+from backend.security import password_policy_error
 from backend.validators import is_valid_email
 
 auth_bp = Blueprint("auth", __name__)
 
 
 def _validate_password(password: str) -> str | None:
-    if not password or len(password) < 6:
-        return "Password must be at least 6 characters"
-    return None
+    return password_policy_error(password, min_length=10)
 
 
 @auth_bp.post("/register")

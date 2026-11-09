@@ -1,4 +1,6 @@
-"""Programmatic seed: single admin + demo staff/users/treks/bookings for viva demos."""
+"""Programmatic DB seed — admin always; demo fixtures only when SEED_DEMO_DATA=true."""
+
+from __future__ import annotations
 
 from datetime import date, timedelta
 
@@ -6,26 +8,54 @@ from flask import current_app
 
 from backend.extensions import db
 from backend.models import Booking, Trek, User
+from backend.security import generate_password, write_bootstrap_admin
+
+
+def _resolve_admin_password() -> str:
+    configured = (current_app.config.get("ADMIN_PASSWORD") or "").strip()
+    if configured:
+        return configured
+    return generate_password(18)
+
+
+def _resolve_demo_password(config_key: str) -> str:
+    configured = (current_app.config.get(config_key) or "").strip()
+    if configured:
+        return configured
+    return generate_password(14)
 
 
 def seed_database() -> None:
+    """Create the single admin after DB init. Optional lab fixtures behind a flag."""
     admin_email = current_app.config["ADMIN_EMAIL_SEED"]
-    admin = User.query.filter_by(email=admin_email).first()
+    admin = User.query.filter_by(role="admin").first()
     if not admin:
+        admin_password = _resolve_admin_password()
         admin = User(
             email=admin_email,
             name=current_app.config["ADMIN_NAME"],
-            phone="9999999999",
+            phone=None,
             role="admin",
             is_active=True,
         )
-        admin.set_password(current_app.config["ADMIN_PASSWORD"])
+        admin.set_password(admin_password)
         db.session.add(admin)
         db.session.commit()
-        current_app.logger.info("Seeded admin user: %s", admin_email)
+        path = write_bootstrap_admin(admin_email, admin_password)
+        current_app.logger.info(
+            "Seeded admin %s — credentials written to %s (gitignored)",
+            admin_email,
+            path,
+        )
+
+    if not current_app.config.get("SEED_DEMO_DATA"):
+        return
 
     if User.query.filter_by(role="staff").count() > 0:
-        return  # demo data already present
+        return
+
+    staff_password = _resolve_demo_password("DEMO_STAFF_PASSWORD")
+    user_password = _resolve_demo_password("DEMO_USER_PASSWORD")
 
     staff1 = User(
         email="staff1@trekmanage.local",
@@ -34,7 +64,7 @@ def seed_database() -> None:
         role="staff",
         address="Manali Base Camp",
     )
-    staff1.set_password("Staff@123")
+    staff1.set_password(staff_password)
     staff2 = User(
         email="staff2@trekmanage.local",
         name="Arjun Mehta",
@@ -42,7 +72,7 @@ def seed_database() -> None:
         role="staff",
         address="Rishikesh Hub",
     )
-    staff2.set_password("Staff@123")
+    staff2.set_password(staff_password)
 
     user1 = User(
         email="trekker1@example.com",
@@ -50,18 +80,18 @@ def seed_database() -> None:
         phone="9777000001",
         role="user",
         address="Hyderabad",
-        emergency_contact="Mother — 9777000099",
+        emergency_contact="Emergency contact on file",
     )
-    user1.set_password("User@123")
+    user1.set_password(user_password)
     user2 = User(
         email="trekker2@example.com",
         name="Rohan Kapoor",
         phone="9777000002",
         role="user",
         address="Mumbai",
-        emergency_contact="Father — 9777000088",
+        emergency_contact="Emergency contact on file",
     )
-    user2.set_password("User@123")
+    user2.set_password(user_password)
     user3 = User(
         email="trekker3@example.com",
         name="Neha Joshi",
@@ -69,7 +99,7 @@ def seed_database() -> None:
         role="user",
         address="Pune",
     )
-    user3.set_password("User@123")
+    user3.set_password(user_password)
 
     db.session.add_all([staff1, staff2, user1, user2, user3])
     db.session.commit()
@@ -164,7 +194,6 @@ def seed_database() -> None:
     db.session.add_all(treks)
     db.session.commit()
 
-    # Assign staff
     treks[0].assigned_staff.append(staff1)
     treks[1].assigned_staff.append(staff1)
     treks[1].assigned_staff.append(staff2)
@@ -181,10 +210,24 @@ def seed_database() -> None:
         Booking(user_id=user1.id, trek_id=treks[5].id, status="Completed", payment_status="Paid"),
         Booking(user_id=user2.id, trek_id=treks[5].id, status="Completed", payment_status="Paid"),
     ]
-    # Adjust slots for open treks based on booked counts
     treks[0].available_slots = treks[0].total_slots - 3
     treks[1].available_slots = treks[1].total_slots - 2
 
     db.session.add_all(bookings)
     db.session.commit()
-    current_app.logger.info("Seeded demo staff, users, treks, and bookings")
+
+    creds_path = current_app.instance_path + "/DEMO_CREDENTIALS.txt"
+    from pathlib import Path
+
+    Path(current_app.instance_path).mkdir(parents=True, exist_ok=True)
+    Path(creds_path).write_text(
+        (
+            "# Local lab demo accounts — gitignored, never ship\n"
+            f"staff_password={staff_password}\n"
+            f"user_password={user_password}\n"
+            "staff_emails=staff1@trekmanage.local,staff2@trekmanage.local\n"
+            "user_emails=trekker1@example.com,trekker2@example.com,trekker3@example.com\n"
+        ),
+        encoding="utf-8",
+    )
+    current_app.logger.info("Seeded lab demo fixtures; passwords in %s", creds_path)

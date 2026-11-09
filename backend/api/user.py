@@ -67,8 +67,11 @@ def update_profile():
     if "emergency_contact" in data:
         user.emergency_contact = (data["emergency_contact"] or "").strip() or None
     if "password" in data and data["password"]:
-        if len(data["password"]) < 6:
-            errors["password"] = "Password min 6 characters"
+        from backend.security import password_policy_error
+
+        pwd_err = password_policy_error(data["password"], min_length=10)
+        if pwd_err:
+            errors["password"] = pwd_err
         else:
             user.set_password(data["password"])
     if errors:
