@@ -11,6 +11,13 @@ The cloud agent preview is **not** on your machine. Clone the repo and start it 
 ### Prerequisites
 
 - Python 3.10+
+- On Ubuntu / Debian / WSL you also need the venv package once:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y python3.12-venv python3-venv
+```
+
 - Redis is **optional for the UI / dashboards** (trek list still works). Needed only for Redis cache + Celery jobs.
 
 ```bash

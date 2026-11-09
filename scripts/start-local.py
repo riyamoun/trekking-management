@@ -58,12 +58,33 @@ def _flask_ok(py: Path) -> bool:
         return False
 
 
+def _create_venv() -> None:
+    print("→ Creating virtualenv (.venv)…")
+    # Remove a broken half-created venv (common when ensurepip is missing)
+    if VENV_DIR.exists() and not _venv_python().exists():
+        shutil.rmtree(VENV_DIR, ignore_errors=True)
+    try:
+        subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)], cwd=ROOT)
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(
+            "Could not create .venv (ensurepip / python3-venv missing).\n"
+            "On Ubuntu/Debian/WSL run:\n"
+            "  sudo apt-get update\n"
+            "  sudo apt-get install -y python3.12-venv python3-venv\n"
+            "Then delete the broken env and retry:\n"
+            "  rm -rf .venv\n"
+            "  python3 scripts/start-local.py\n"
+            f"(venv exit code {exc.returncode})"
+        ) from exc
+
+
 def _ensure_venv() -> Path:
     py = _venv_python()
     if not py.exists():
-        print("→ Creating virtualenv (.venv)…")
-        subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)], cwd=ROOT)
+        _create_venv()
         py = _venv_python()
+    if not py.exists():
+        raise SystemExit("Virtualenv python missing after create — see python3-venv install steps above.")
     if not _flask_ok(py):
         _pip_install(py)
     if not _flask_ok(py):
