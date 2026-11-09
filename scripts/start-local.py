@@ -33,15 +33,44 @@ def _venv_python() -> Path:
     return VENV_DIR / "bin" / "python"
 
 
+def _pip_install(py: Path) -> None:
+    print("→ Installing / refreshing requirements (may take a minute)…")
+    subprocess.check_call(
+        [str(py), "-m", "pip", "install", "-q", "--upgrade", "pip"],
+        cwd=ROOT,
+    )
+    subprocess.check_call(
+        [str(py), "-m", "pip", "install", "-q", "-r", "requirements.txt"],
+        cwd=ROOT,
+    )
+
+
+def _flask_ok(py: Path) -> bool:
+    try:
+        subprocess.check_call(
+            [str(py), "-c", "import flask"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
 def _ensure_venv() -> Path:
     py = _venv_python()
-    if py.exists():
-        return py
-    print("→ Creating virtualenv (.venv)…")
-    subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)], cwd=ROOT)
-    py = _venv_python()
-    print("→ Installing requirements…")
-    subprocess.check_call([str(py), "-m", "pip", "install", "-q", "-r", "requirements.txt"], cwd=ROOT)
+    if not py.exists():
+        print("→ Creating virtualenv (.venv)…")
+        subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)], cwd=ROOT)
+        py = _venv_python()
+    if not _flask_ok(py):
+        _pip_install(py)
+    if not _flask_ok(py):
+        raise SystemExit(
+            "Flask still missing after pip install. Try:\n"
+            f"  {py} -m pip install -r requirements.txt"
+        )
     return py
 
 
