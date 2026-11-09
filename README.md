@@ -11,16 +11,21 @@ The cloud agent preview is **not** on your machine. Clone the repo and start it 
 ### Prerequisites
 
 - Python 3.10+
-- Redis (needed for trek cache + Celery; UI still boots if Redis is down)
+- Redis is **optional for the UI / dashboards** (trek list still works). Needed only for Redis cache + Celery jobs.
 
 ```bash
-# Ubuntu / WSL
-sudo apt-get install -y redis-server
-redis-server --daemonize yes
+# Only if you want cache + Celery (skip this for a quick UI demo)
 
-# macOS
+# Ubuntu / Debian / WSL
+sudo apt-get update && sudo apt-get install -y redis-server
+sudo service redis-server start
+# or: redis-server --daemonize yes
+
+# macOS (Homebrew)
 brew install redis && brew services start redis
 ```
+
+If `redis-server: command not found`, **ignore it for now** and start Flask anyway.
 
 ### One-command start
 

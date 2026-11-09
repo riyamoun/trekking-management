@@ -5,7 +5,7 @@ Usage (from project root):
   python3 scripts/start-local.py
 
 Opens http://127.0.0.1:3847 in your default browser.
-Requires: Python 3.10+, Redis running (or redis-server on PATH).
+Requires: Python 3.10+. Redis is optional for UI; install it for cache/Celery.
 """
 
 from __future__ import annotations
@@ -89,12 +89,11 @@ def _maybe_start_redis() -> None:
     redis_server = shutil.which("redis-server")
     if not redis_server:
         print(
-            "⚠  Redis is not running and redis-server was not found on PATH.\n"
-            "   Install Redis, then re-run:\n"
-            "     macOS:  brew install redis && brew services start redis\n"
-            "     Ubuntu: sudo apt-get install -y redis-server && redis-server --daemonize yes\n"
-            "     Windows: use WSL or Memurai / Redis for Windows\n"
-            "   The UI still loads without Redis; trek cache / Celery need it."
+            "⚠  Redis not installed (redis-server not found) — continuing without it.\n"
+            "   Public site + dashboards still work. Install later for cache/Celery:\n"
+            "     Ubuntu/WSL: sudo apt-get install -y redis-server && sudo service redis-server start\n"
+            "     macOS:      brew install redis && brew services start redis\n"
+            "   You do NOT need Redis to open http://127.0.0.1:3847 for a UI demo."
         )
         return
     print("→ Starting redis-server --daemonize yes")
