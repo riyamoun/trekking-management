@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment & secrets
+.env
+*.pem
+*.key
+secrets/
+
+# Database (created programmatically)
+instance/
+*.db
+*.sqlite3
+
+# Generated artifacts
+exports/
+reports/
+uploads/
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Node (if Vue CLI used later)
+node_modules/
+dist/
+.npm
+
+# Coverage / test
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+terminals/
